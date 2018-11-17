@@ -2,9 +2,9 @@ import java.util.Scanner;
 import java.util.*;
 public class Game
 {
-   private Room currentRoom;
+   private static Room currentRoom;
 
-   private Player player1;
+   private static Player player1;
    private Parser parser;
 
 
@@ -22,18 +22,35 @@ public class Game
 
          Game game = new Game(playerName);
 
+
          System.out.println("My name is " + playerName);
          game.printHelp();
 
 
 
-         while(quitGame == false)
+         while(quitGame == false )
          {
-            System.out.println("What Will you do?");
-            Command command = game.parser.getCommand();
-            quitGame = game.processCommand(command);
+            if(player1.getStealthMeter() > 0)
+            {
+               if(currentRoom.getName().equals("outside"))
+               {
+                  System.out.println("I'm FREE! I'm finally FREE!");
+                  System.out.println("Uh oh, looks like I made too much noise, I better get going!");
+                  quitGame = true;
+               }
+               System.out.println("What Will you do?");
+               Command command = game.parser.getCommand();
+               quitGame = game.processCommand(command);
+
+            }
+
+            else
+            {
+               System.out.println("Uh oh, I got caught! Looks like it's life behind bars for the rest of my life!");
+               quitGame = true;
             }
          }
+   }
 
 
 
@@ -121,7 +138,7 @@ public class Game
       }
       else if(commandWord.equals("take"))
       {
-          takeItem(command);
+         takeItem(command);
 
       }
       //work in progress
@@ -189,6 +206,7 @@ public class Game
       System.out.println();
       System.out.println("The 'use' command lets you use an item from your inventory with an object in the room\n");
       System.out.println("the 'combine' command combines 2 items in your inventory\n");
+      System.out.println("The 'take' command takes an item in the room (so long as you can take it)\n");
       System.out.println("the 'go to' command lets you traverse between rooms.\n");
       System.out.println("The 'interact with' command lets you interact with an object in the room\n");
       System.out.println("You will need all these commands to successfully escape the prison!\n");
@@ -237,8 +255,8 @@ public class Game
                 if(item.equals("hammer"))
                 {
                    System.out.println("Use " + command.getSecondWord() + " with what?");
+                   System.out.println(currentRoom.getItemString());
                    System.out.print(">");
-                   System.out.println(currentRoom.getDescription());
                    Scanner in = new Scanner(System.in);
                    String input = in.nextLine();
                    if(input.equals("crumbling wall"))
@@ -249,10 +267,10 @@ public class Game
 
 
                 }
-                else if(item.equals("towel hammer"))
+                else if(item.equals("blanket hammer"))
                 {
                    System.out.println("Use " + command.getSecondWord() + " with what?");
-                   System.out.println(currentRoom.getDescription());
+                   System.out.println(currentRoom.getItemString());
                    System.out.print(">");
                    Scanner in = new Scanner(System.in);
                    String input = in.nextLine();
@@ -262,6 +280,7 @@ public class Game
                       System.out.println("You managed to break open the wall revealing the next room. You can now freely go from the Pipe Room to the Cell");
                       allRooms.get("cell").addDirection("pipe room", allRooms.get("pipe Room"));
                       allRooms.get("pipe room").addDirection("cell", allRooms.get("cell"));
+                      currentRoom = allRooms.get("pipe room");
 
                    }
 
@@ -274,11 +293,41 @@ public class Game
 
           else if(currentRoom.getName().equals("pipe room"))
           {
+            if(item.equals("blanket"))
+            {
+               System.out.println("Use " + command.getSecondWord() + " with what?");
+               System.out.println(currentRoom.getItemString());
+               System.out.print(">");
+               Scanner in = new Scanner(System.in);
+               String input = in.nextLine();
+
+               if(input.equals("hot water pipe"))
+               {
+                  System.out.println("You wrapped the blanket around the hot water pipe and slid down to the basement!");
+                  currentRoom = allRooms.get("basement");
+               }
+            }
 
           }
 
           else if(currentRoom.getName().equals("court yard"))
           {
+             if(item.equals("blanket"))
+             {
+                System.out.println("Use " + command.getSecondWord() + " with what?");
+               System.out.println(currentRoom.getItemString());
+               System.out.print(">");
+               Scanner in = new Scanner(System.in);
+               String input = in.nextLine();
+
+                 if(input.equals("bars"))
+                 {
+                    System.out.println("You wrap the blanket around the bars and start twisting. The bars bend just enough to sneak through. Good think they don't give you a lot of food in prison!");
+                    currentRoom = allRooms.get("outside");
+                 }
+                 else
+                    System.out.println("Can't do that!");
+             }
 
           }
 

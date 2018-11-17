@@ -93,7 +93,7 @@ public class Room
           Set<String> keys = connectedRooms.keySet();
           for(String item : keys)
           {
-             returnString += " " + item;
+             returnString += ", " + item;
           }
              return  returnString;
 
