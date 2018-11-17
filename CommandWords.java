@@ -6,14 +6,15 @@
  * It is used to recognise commands as they are typed in.
  *
  * @author  Michael Kölling and David J. Barnes
- * @version 2016.02.29
+ * @author Peter Basily
+ * @version 2018.17.11
  */
 
 public class CommandWords
 {
     // a constant array that holds all valid command words
     private static final String[] validCommands = {
-        "go to", "quit", "help", "use", "combine", "interact with", "take"
+        "goto", "quit", "help", "use", "combine", "interact-with", "take", "separate", "inventory"
     };
 
     /**

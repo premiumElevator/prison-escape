@@ -1,5 +1,5 @@
 import java.util.Scanner;
-import java.util.*;
+import java.util.HashMap;
 public class Game
 {
    private static Room currentRoom;
@@ -74,10 +74,10 @@ public class Game
    {
       parser = new Parser();
       allRooms = new HashMap<>();
-      Room cell = new Room("cell", "My cell room. Contains a sink,a bed with a dusty cover, and a Shawshank Redemption poster on the wall.");
-      Room pipeRoom = new Room("pipe room","This looks like the room with all the pipes that deliver water to the cells. It looks like I can shimmy down this pipe to the basement, but the pipe might be too hot.");
+      Room cell = new Room("cell", "it's my cell room.");
+      Room pipeRoom = new Room("pipe-room","This looks like the room with all the pipes that deliver water to the cells. It looks like I can shimmy down this pipe to the basement, but the pipe might be too hot.");
       Room basement = new Room("basement", "There is an oddly misplaced box in the corner of the room. Wait, what did my note say again...");
-      Room courtYard = new Room("court yard", "The courtyard. I'm almost free, just gotta get past these gate bars...Maybe I can bend them...");
+      Room courtYard = new Room("courtyard", "The courtyard. I'm almost free, just gotta get past these gate bars...Maybe I can bend them...");
       Room outside = new Room("outside", "I'm outside, I'm FINALLY FREE!!!");
       currentRoom = cell;
 
@@ -87,24 +87,23 @@ public class Game
       //Item weakWall = new Item("crumbling wall", "A crumbling wall hidden behind the poster, I should hammer this to get out", false);
 
       cell.addItem("blanket", blanket);
-      cell.addItem("sink", sink);
       cell.addItem("poster", poster);
       //cell.addItem("crumbling wall", weakWall);
 
-      Item hotPipe = new Item("hot water pipe", "it's a hot water pipe, I can't shimmy down this pipe unless I somehow find a way to cool it", false);
-      pipeRoom.addItem("hot water pipe", hotPipe);
+      Item hotPipe = new Item("hotwater-pipe", "it's a hot water pipe, I can't shimmy down this pipe unless I somehow find a way to cool it", false);
+      pipeRoom.addItem("hotwater-pipe", hotPipe);
 
-      Item box = new Item("big box", "it's a big box that seems out of place...maybe I can move it", false);
-      basement.addItem("big box", box);
+      Item box = new Item("big-box", "it's a big box that seems out of place...maybe I can move it", false);
+      basement.addItem("big-box", box);
 
 
-      Item bars = new Item("fence bars", "fence bars keeping me away from sweet freedom. I might be able to bend them with something I have...", false);
-      courtYard.addItem("fence bars", bars);
+      Item bars = new Item("bars", "fence bars keeping me away from sweet freedom. I might be able to bend them with something I have...", false);
+      courtYard.addItem("bars", bars);
 
       allRooms.put("cell", cell);
-      allRooms.put("pipe room", pipeRoom);
+      allRooms.put("pipe-room", pipeRoom);
       allRooms.put("basement", basement);
-      allRooms.put("court yard", courtYard);
+      allRooms.put("courtyard", courtYard);
       allRooms.put("outside", outside);
 
 
@@ -126,7 +125,7 @@ public class Game
       if (commandWord.equals("help")) {
          printHelp();
       }
-      else if (commandWord.equals("go to")) {
+      else if (commandWord.equals("goto")) {
          goRoom(command);
       }
       else if (commandWord.equals("quit")) {
@@ -141,16 +140,22 @@ public class Game
          takeItem(command);
 
       }
-      //work in progress
-      // else if(commandWord.equals("combine"))
-      // {
-      //    combine(command);
-      // }
-      // else if(commandWord.equals("interact with"))
-      // {
-      //    interact(command);
-      // }
-      // else command not recognised.
+      else if(commandWord.equals("combine"))
+      {
+         combine(command);
+      }
+      else if(commandWord.equals("inventory"))
+      {
+         inventory();
+      }
+      else if(commandWord.equals("interact-with"))
+      {
+         interact(command);
+      }
+      else if(commandWord.equals("separate"))
+      {
+         separate(command);
+      }
       return wantToQuit;
    }
 
@@ -195,11 +200,12 @@ public class Game
 
 
    }
+
    private void printHelp()
    {
       System.out.println("Today is the day I escape from prison.");
       System.out.println("I am currently in my prison cell.");
-      System.out.println(allRooms.get("cell").getDescription());
+      System.out.println("I notice the following items: \n" + allRooms.get("cell").getItemString());
       System.out.println();
       System.out.println("Your command words are:");
       parser.showCommands();
@@ -208,9 +214,19 @@ public class Game
       System.out.println("the 'combine' command combines 2 items in your inventory\n");
       System.out.println("The 'take' command takes an item in the room (so long as you can take it)\n");
       System.out.println("the 'go to' command lets you traverse between rooms.\n");
-      System.out.println("The 'interact with' command lets you interact with an object in the room\n");
+      System.out.println("The 'interact-with' command lets you interact with an object in the room\n");
+      System.out.println("The 'inventory' command lists your inventory");
       System.out.println("You will need all these commands to successfully escape the prison!\n");
    }
+
+   private void inventory()
+   {
+
+      System.out.println(player1.getInventoryString());
+      return;
+
+   }
+
 
    private void goRoom(Command command)
    {
@@ -230,10 +246,70 @@ public class Game
       }
       else {
            currentRoom = nextRoom;
-           System.out.println(currentRoom.getLongDescription());
+           System.out.println(currentRoom.getDescription() + "I notice the following items: \n" + currentRoom.getItemString());
       }
    }
-//not completely done, work in progress.
+
+   private void interact(Command command)
+   {
+      if(!command.hasSecondWord()) {
+         //if there is no second word, we don't know where to go...
+         System.out.println("Interact with what?");
+         return;
+      }
+
+      String item = command.getSecondWord();
+      if(currentRoom.getItem(item) != null)
+      {
+         if(currentRoom.getName().equals("basement"))
+         {
+            if(item.equals("big-box"))
+            {
+               System.out.println("You move the big-box to reveal a hole in the wall.");
+               allRooms.get("basement").removeItem("big-box");
+               Item hole = new Item("hole", "A small hole in the wall that I can crawl through", false);
+               allRooms.get("basement").addItem("hole", hole);
+            }
+            if(item.equals("hole"))
+            {
+               System.out.println("You crawl through the small hole and end up in the courtyard.");
+               currentRoom = allRooms.get("courtyard");
+            }
+         }
+      }
+   }
+
+   private void separate(Command command)
+   {
+      if(!command.hasSecondWord()) {
+         //if there is no second word, we don't know where to go...
+         System.out.println("Separate what?");
+         return;
+      }
+
+      String item = command.getSecondWord();
+
+      if(item.equals("blanket-hammer"))
+      {
+         if(player1.getInventory().containsKey("blanket-hammer"))
+         {
+            Item hammer = new Item("hammer", "it's a hammer. I should probably wrap it up in something so it doesn't make too much noise.", true);
+            Item blanket = new Item("blanket", "it's a dusty blanket", true);
+            player1.addItem("blanket", blanket);
+            player1.addItem("hammer", hammer);
+            player1.removeItem("blanket-hammer");
+            return;
+
+         }
+         else
+            System.out.println("You don't have that item!");
+            return;
+      }
+      else
+         System.out.println("Can't do that!");
+         return;
+   }
+
    private void use(Command command)
    {
       if(!command.hasSecondWord()) {
@@ -267,7 +343,7 @@ public class Game
 
 
                 }
-                else if(item.equals("blanket hammer"))
+                else if(item.equals("blanket-hammer"))
                 {
                    System.out.println("Use " + command.getSecondWord() + " with what?");
                    System.out.println(currentRoom.getItemString());
@@ -277,10 +353,10 @@ public class Game
 
                    if(input.equals("crumbling wall"))
                    {
-                      System.out.println("You managed to break open the wall revealing the next room. You can now freely go from the Pipe Room to the Cell");
-                      allRooms.get("cell").addDirection("pipe room", allRooms.get("pipe Room"));
-                      allRooms.get("pipe room").addDirection("cell", allRooms.get("cell"));
-                      currentRoom = allRooms.get("pipe room");
+                      System.out.println("You managed to break open the wall revealing the next room. You can now freely go from the pipe-room to the Cell");
+                      allRooms.get("cell").addDirection("pipe-room", allRooms.get("pipe-room"));
+                      allRooms.get("pipe-room").addDirection("cell", allRooms.get("cell"));
+                      currentRoom = allRooms.get("pipe-room");
 
                    }
 
@@ -291,7 +367,7 @@ public class Game
                System.out.println("can't do that!");
           }
 
-          else if(currentRoom.getName().equals("pipe room"))
+          else if(currentRoom.getName().equals("pipe-room"))
           {
             if(item.equals("blanket"))
             {
@@ -301,20 +377,20 @@ public class Game
                Scanner in = new Scanner(System.in);
                String input = in.nextLine();
 
-               if(input.equals("hot water pipe"))
+               if(input.equals("hotwater-pipe"))
                {
-                  System.out.println("You wrapped the blanket around the hot water pipe and slid down to the basement!");
+                  System.out.println("You wrapped the blanket around the hotwater-pipe and slid down to the basement!");
                   currentRoom = allRooms.get("basement");
                }
             }
 
           }
 
-          else if(currentRoom.getName().equals("court yard"))
+          else if(currentRoom.getName().equals("courtyard"))
           {
              if(item.equals("blanket"))
              {
-                System.out.println("Use " + command.getSecondWord() + " with what?");
+               System.out.println("Use " + command.getSecondWord() + " with what?");
                System.out.println(currentRoom.getItemString());
                System.out.print(">");
                Scanner in = new Scanner(System.in);
@@ -336,6 +412,61 @@ public class Game
         else
           System.out.println("You don't have that item!");
 
+
+
+   }
+
+   private void combine(Command command)
+   {
+      if(!command.hasSecondWord()) {
+           // if there is no second word, we don't know where to go...
+           System.out.println("Use what?");
+           return;
+      }
+
+      String item = command.getSecondWord();
+
+      if(player1.getInventory().containsKey(item))
+      {
+         if(item.equals("hammer"))
+         {
+            System.out.println("Combine " + command.getSecondWord() + " with what?");
+            System.out.println(player1.getInventoryString());
+            System.out.print(">");
+            Scanner in = new Scanner(System.in);
+            String input = in.nextLine();
+            if(input.equals("blanket"))
+            {
+               if(player1.getInventory().containsKey("blanket"))
+               {
+                  player1.removeItem("hammer");
+                  player1.removeItem("blanket");
+                  Item blanketHammer = new Item("blanket hammer", "It's a hammer covered by a blanket to make less noise", true);
+                  player1.addItem("blanket-hammer", blanketHammer);
+                  System.out.println("You combined both items to make the 'blanket-hammer'");
+               }
+            }
+         }
+         else if(item.equals("blanket"))
+         {
+            System.out.println("Combine " + command.getSecondWord() + " with what?");
+            System.out.println(player1.getInventoryString());
+            System.out.print(">");
+            Scanner in = new Scanner(System.in);
+            String input = in.nextLine();
+            if(input.equals("hammer"))
+            {
+               if(player1.getInventory().containsKey("hammer"))
+               {
+                  player1.removeItem("hammer");
+                  player1.removeItem("blanket");
+                  Item blanketHammer = new Item("blanket hammer", "It's a hammer covered by a blanket to make less noise", true);
+                  player1.addItem("blanket-hammer", blanketHammer);
+                  System.out.println("You combined both items to make the 'blanket-hammer'");
+               }
+            }
+         }
+      }
 
 
    }
