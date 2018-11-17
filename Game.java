@@ -29,22 +29,13 @@ public class Game
 
          while(quitGame == false)
          {
-            if(player1.getStealthMeter() > 0)
-            {
-               System.out.println("What Will you do?");
-               Command command = game.parser.getCommand();
-               game.processCommand(command);
-               quitGame = game.processCommand(command);
-            }
-            else
-            {
-               System.out.println("Uh oh, I got caught! Looks like it's life behind bars for me :(");
-               quitGame = true;
+            System.out.println("What Will you do?");
+            Command command = game.parser.getCommand();
+            quitGame = game.processCommand(command);
             }
          }
 
 
-   }
 
 
    public Game(String name)
@@ -66,7 +57,7 @@ public class Game
    {
       parser = new Parser();
       allRooms = new HashMap<>();
-      Room cell = new Room("cell", "My cell room. Contains a sink and a bed with a dusty cover");
+      Room cell = new Room("cell", "My cell room. Contains a sink,a bed with a dusty cover, and a Shawshank Redemption poster on the wall.");
       Room pipeRoom = new Room("pipe room","This looks like the room with all the pipes that deliver water to the cells. It looks like I can shimmy down this pipe to the basement, but the pipe might be too hot.");
       Room basement = new Room("basement", "There is an oddly misplaced box in the corner of the room. Wait, what did my note say again...");
       Room courtYard = new Room("court yard", "The courtyard. I'm almost free, just gotta get past these gate bars...Maybe I can bend them...");
@@ -104,23 +95,6 @@ public class Game
 
    }
 
-   private void takeItem(String name)
-   {
-      if(currentRoom.getItem(name) != null && currentRoom.getItem(name).getCanTake()==true)
-      {
-         player1.addItem(currentRoom.getItem(name).getName(), currentRoom.getItem(name));
-         currentRoom.removeItem(name);
-         System.out.println("added " + name + " to your inventory.");
-         if(name.equals("poster"))
-         {
-            Item weakWall = new Item("crumbling wall", "A crumbling wall hidden behind the poster, I should hammer this to get out", false);
-            allRooms.get("cell").addItem("crumbling wall",weakWall);
-         }
-
-       }
-      else
-         System.out.println("can't do that");
-   }
 
    private boolean processCommand(Command command)
    {
@@ -145,6 +119,11 @@ public class Game
       {
          use(command);
       }
+      else if(commandWord.equals("take"))
+      {
+          takeItem(command);
+
+      }
       //work in progress
       // else if(commandWord.equals("combine"))
       // {
@@ -156,6 +135,48 @@ public class Game
       // }
       // else command not recognised.
       return wantToQuit;
+   }
+
+   /*
+   *the following methods are all the commands for the game.*
+   */
+
+   private void takeItem(Command command)
+   {
+      if(!command.hasSecondWord()) {
+         // if there is no second word, we don't know where to go...
+         System.out.println("take what?");
+         return;
+      }
+
+      String name = command.getSecondWord();
+
+
+      if(currentRoom.getItem(name) == null)
+      {
+         System.out.println("can't do that!");
+         return;
+      }
+
+
+      if(currentRoom.getItem(name).getCanTake()==true)
+      {
+         player1.addItem(currentRoom.getItem(name).getName(), currentRoom.getItem(name));
+         currentRoom.removeItem(name);
+         System.out.println("added " + name + " to your inventory.");
+         if(name.equals("poster"))
+         {
+            Item weakWall = new Item("crumbling wall", "A crumbling wall was hidden behind the poster, I should hammer this to get out", false);
+            allRooms.get("cell").addItem("crumbling wall",weakWall);
+            System.out.println(weakWall.getDescription());
+            return;
+         }
+
+         return;
+
+      }
+
+
    }
    private void printHelp()
    {
@@ -206,61 +227,65 @@ public class Game
       String item = command.getSecondWord();
 
 
-      System.out.println("Use " + command.getSecondWord() + " with what?");
-      System.out.print(">");
-      Scanner in = new Scanner(System.in);
-      String input = in.nextLine();
-
-
-      if(currentRoom.getName().equals("cell"))
+      if (player1.getInventory().containsKey(item))
       {
-         if (player1.getInventory().containsKey(item))
-         {
-            if(item.equals("hammer"))
-            {
-               if(input.equals("crumbling wall"))
-               {
-                  //if(currentRoom.get)
-                  System.out.println("Uh oh, I made a lot of noise, looks like a guard noticed!");
-                  player1.lostStealth();
-               }
-               else
-                  System.out.println("You can't do that");
+          if(currentRoom.getName().equals("cell"))
+          {
 
-            }
-            else if(item.equals("towel hammer"))
-            {
-               //if()
-               // System.out.println("Use the towel hammer with what?");
-               // System.out.print(">");
-               // Scanner input = new Scanner(System.in);
-
-               if(input.equals("crumbling wall"))
-               {
-                  System.out.println("You managed to break open the wall revealing the next room. You can now freely go from the Pipe Room to the Cell");
-                  allRooms.get("cell").addDirection("pipe room", allRooms.get("pipe Room"));
-                  allRooms.get("pipe room").addDirection("cell", allRooms.get("cell"));
-
-               }
-
-            }
-            else
-               System.out.println("You can't do that");
-         }
-      }
-
-      else if(currentRoom.getName().equals("pipe room"))
-      {
-
-      }
-
-      else if(currentRoom.getName().equals("court yard"))
-      {
-
-      }
+             if (player1.getInventory().containsKey("poster"))
+             {
+                if(item.equals("hammer"))
+                {
+                   System.out.println("Use " + command.getSecondWord() + " with what?");
+                   System.out.print(">");
+                   System.out.println(currentRoom.getDescription());
+                   Scanner in = new Scanner(System.in);
+                   String input = in.nextLine();
+                   if(input.equals("crumbling wall"))
+                   {
+                      System.out.println("Uh oh, I made a lot of noise, looks like a guard noticed!");
+                      player1.lostStealth();
+                   }
 
 
+                }
+                else if(item.equals("towel hammer"))
+                {
+                   System.out.println("Use " + command.getSecondWord() + " with what?");
+                   System.out.println(currentRoom.getDescription());
+                   System.out.print(">");
+                   Scanner in = new Scanner(System.in);
+                   String input = in.nextLine();
 
+                   if(input.equals("crumbling wall"))
+                   {
+                      System.out.println("You managed to break open the wall revealing the next room. You can now freely go from the Pipe Room to the Cell");
+                      allRooms.get("cell").addDirection("pipe room", allRooms.get("pipe Room"));
+                      allRooms.get("pipe room").addDirection("cell", allRooms.get("cell"));
+
+                   }
+
+                }
+
+             }
+             else
+               System.out.println("can't do that!");
+          }
+
+          else if(currentRoom.getName().equals("pipe room"))
+          {
+
+          }
+
+          else if(currentRoom.getName().equals("court yard"))
+          {
+
+          }
+
+
+        }
+        else
+          System.out.println("You don't have that item!");
 
 
 
