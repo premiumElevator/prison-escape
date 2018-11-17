@@ -4,13 +4,26 @@ import java.util.*;
 
 public class Room
 {
-   private String description;
+   private String description, name;
    private HashMap<String, Item> itemsInRoom;
+   private HashMap<String, Room> connectedRooms;
 
-   public Room(String description)
+   public Room(String name, String description)
    {
+      this.name = name;
       this.description = description;
       itemsInRoom = new HashMap<>();
+      connectedRooms = new HashMap<>();
+   }
+
+   public void addItem(String name, Item item)
+   {
+      itemsInRoom.put(name, item);
+   }
+
+   public void removeItem(String item)
+   {
+      itemsInRoom.remove(item);
    }
 
    public Item getItem(String item)
@@ -20,22 +33,27 @@ public class Room
          return itemsInRoom.get(item);
       }
       else
-         return null;
+      return null;
    }
 
-   public void removeItem(String item)
+   public Room getDirection(String name)
    {
-      itemsInRoom.remove(item);
+      return connectedRooms.get(name);
    }
 
-   public void addItem(String name, Item item)
+   public void addDirection(String direction, Room room)
    {
-      itemsInRoom.put(name, item);
+      connectedRooms.put(direction, room);
    }
 
    public String getDescription()
    {
       return description;
+   }
+
+   public String getName()
+   {
+      return name;
    }
 
    public String getLongDescription()
@@ -62,6 +80,27 @@ public class Room
 
       }
    }
+
+   public String getDirectionString()
+   {
+      if(connectedRooms.size() == 0)
+      {
+        return "There seems to be nowhere to go...";
+      }
+      else
+      {
+          String returnString = "Directions:";
+          Set<String> keys = connectedRooms.keySet();
+          for(String item : keys)
+          {
+             returnString += " " + item;
+          }
+             return  returnString;
+
+
+      }
+   }
+
 
 
 }
