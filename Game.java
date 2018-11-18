@@ -1,15 +1,24 @@
+/**
+* @author Peter Basily
+* @version 2018.11.18
+* This game class contains the main method as well as the logic for all the commands.
+* It creates a player class and several rooms that it stores in a hashmap called allRooms
+**/
 import java.util.Scanner;
 import java.util.HashMap;
 public class Game
 {
-   private static Room currentRoom;
+   private static Room currentRoom; //the current room the player is in
 
-   private static Player player1;
-   private Parser parser;
+   private static Player player1; //the player object stores inventory and stealth meter.
+   private Parser parser; //the parser decodes player commands.
 
 
-   private HashMap<String, Room> allRooms;
+   private HashMap<String, Room> allRooms; //a hashmap to store all the rooms in the game.
 
+   /**
+   *The main method creates a new Game object by accepting the player's name.
+   **/
    public static void main(String[] args)
    {
          String playerName;
@@ -27,7 +36,9 @@ public class Game
          game.printHelp();
 
 
-
+         /**
+         *This is the game loop, it checks if the player quit, lost his stealth meter, or reached the end of the game.
+         **/
          while(quitGame == false )
          {
             if(player1.getStealthMeter() > 0)
@@ -37,8 +48,11 @@ public class Game
                   System.out.println("I'm FREE! I'm finally FREE!");
                   System.out.println("Uh oh, looks like I made too much noise, I better get going!");
                   quitGame = true;
+                  return;
                }
-               System.out.println("What Will you do?");
+               System.out.println("What Will you do?\n");
+               System.out.println(currentRoom.getDescription() + "\n");
+               System.out.println(currentRoom.getItemString() + "\n");
                Command command = game.parser.getCommand();
                quitGame = game.processCommand(command);
 
@@ -54,7 +68,9 @@ public class Game
 
 
 
-
+   /**
+   *The constructor instantiates a game object, a player ojbect, and adds 2 items to the player's inventory. It then calls the createRooms() method.
+   **/
    public Game(String name)
    {
       player1 = new Player(name);
@@ -69,14 +85,16 @@ public class Game
 
    }
 
-
+   /**
+   *The createRooms method creates all the rooms and some of the items inside the rooms required for progress
+   **/
    public void createRooms()
    {
       parser = new Parser();
       allRooms = new HashMap<>();
       Room cell = new Room("cell", "it's my cell room.");
       Room pipeRoom = new Room("pipe-room","This looks like the room with all the pipes that deliver water to the cells. It looks like I can shimmy down this pipe to the basement, but the pipe might be too hot.");
-      Room basement = new Room("basement", "There is an oddly misplaced box in the corner of the room. Wait, what did my note say again...");
+      Room basement = new Room("basement", "It's the basement");
       Room courtYard = new Room("courtyard", "The courtyard. I'm almost free, just gotta get past these gate bars...Maybe I can bend them...");
       Room outside = new Room("outside", "I'm outside, I'm FINALLY FREE!!!");
       currentRoom = cell;
@@ -84,11 +102,11 @@ public class Game
       Item blanket = new Item("blanket", "it's a dusty blanket", true);
       Item sink = new Item("sink", "it's a sink", false);
       Item poster = new Item("poster", "A poster", true);
-      //Item weakWall = new Item("crumbling wall", "A crumbling wall hidden behind the poster, I should hammer this to get out", false);
+
 
       cell.addItem("blanket", blanket);
       cell.addItem("poster", poster);
-      //cell.addItem("crumbling wall", weakWall);
+
 
       Item hotPipe = new Item("hotwater-pipe", "it's a hot water pipe, I can't shimmy down this pipe unless I somehow find a way to cool it", false);
       pipeRoom.addItem("hotwater-pipe", hotPipe);
@@ -156,6 +174,11 @@ public class Game
       {
          separate(command);
       }
+      else if(commandWord.equals("inspect"))
+      {
+         inspect(command);
+      }
+
       return wantToQuit;
    }
 
@@ -204,8 +227,8 @@ public class Game
    private void printHelp()
    {
       System.out.println("Today is the day I escape from prison.");
-      System.out.println("I am currently in my prison cell.");
-      System.out.println("I notice the following items: \n" + allRooms.get("cell").getItemString());
+      System.out.println("I am currently in " + currentRoom.getName());
+      System.out.println("I notice the following items: \n" + currentRoom.getItemString());
       System.out.println();
       System.out.println("Your command words are:");
       parser.showCommands();
@@ -215,10 +238,15 @@ public class Game
       System.out.println("The 'take' command takes an item in the room (so long as you can take it)\n");
       System.out.println("the 'go to' command lets you traverse between rooms.\n");
       System.out.println("The 'interact-with' command lets you interact with an object in the room\n");
-      System.out.println("The 'inventory' command lists your inventory");
+      System.out.println("The 'inventory' command lists your inventory\n");
+      System.out.println("The separate commannd allows you to separate items in your inventory\n");
+      System.out.println("The 'inspect' command allows you to inspect items in your inventory\n");
+      System.out.println();
       System.out.println("You will need all these commands to successfully escape the prison!\n");
    }
-
+   /**
+   *The inventory method prints a string with the player's inventory.
+   **/
    private void inventory()
    {
 
@@ -227,7 +255,9 @@ public class Game
 
    }
 
-
+   /**
+   *The goRoom command checks if the room is a valid exit and then changes the currentRoom pointor to the room the player selected
+   **/
    private void goRoom(Command command)
    {
       if(!command.hasSecondWord()) {
@@ -246,10 +276,36 @@ public class Game
       }
       else {
            currentRoom = nextRoom;
-           System.out.println(currentRoom.getDescription() + "I notice the following items: \n" + currentRoom.getItemString());
+           System.out.println(currentRoom.getLongDescription());
       }
    }
+   /**
+   The inspect method checks if an item is in the player's inventory, then prints the description.
+   **/
+   private void inspect(Command command)
+   {
+      if(!command.hasSecondWord()) {
+         //if there is no second word, we don't know where to go...
+         System.out.println("What did you want to inspect?");
+         return;
+      }
+      String item = command.getSecondWord();
 
+      //if the item exists in the player's inventory...
+      if(player1.getInventory().containsKey(item))
+      {
+         System.out.println(player1.inspectItem(item));
+      }
+      //else tell the player they don't have the item and print the inventory.
+      else
+      {
+         System.out.println("You don't have that item!");
+         inventory();
+      }
+   }
+   /**
+   *The interact method checks if you are in the valid room and then lets you interact with items in that room.
+   **/
    private void interact(Command command)
    {
       if(!command.hasSecondWord()) {
@@ -259,8 +315,10 @@ public class Game
       }
 
       String item = command.getSecondWord();
+      //if the item returned isn't null
       if(currentRoom.getItem(item) != null)
       {
+         //if you are in the basement
          if(currentRoom.getName().equals("basement"))
          {
             if(item.equals("big-box"))
@@ -278,7 +336,9 @@ public class Game
          }
       }
    }
-
+   /**
+   The separate method checks for separatable items, removes them from inventory, and adds their components back.
+   **/
    private void separate(Command command)
    {
       if(!command.hasSecondWord()) {
@@ -288,28 +348,33 @@ public class Game
       }
 
       String item = command.getSecondWord();
-
+      //if it's a valid item
       if(item.equals("blanket-hammer"))
       {
+         //if the item is in your inventory
          if(player1.getInventory().containsKey("blanket-hammer"))
          {
-            Item hammer = new Item("hammer", "it's a hammer. I should probably wrap it up in something so it doesn't make too much noise.", true);
-            Item blanket = new Item("blanket", "it's a dusty blanket", true);
-            player1.addItem("blanket", blanket);
-            player1.addItem("hammer", hammer);
-            player1.removeItem("blanket-hammer");
+            Item hammer = new Item("hammer", "it's a hammer. I should probably wrap it up in something so it doesn't make too much noise.", true); //recreates hammer
+            Item blanket = new Item("blanket", "it's a dusty blanket", true); //recreates blanket
+            player1.addItem("blanket", blanket); //adds blanket to inventory
+            player1.addItem("hammer", hammer); //add hammer to inventory
+            player1.removeItem("blanket-hammer"); //removes blanket-hammer from inventory
             return;
 
          }
+         //you don't have that item...
          else
             System.out.println("You don't have that item!");
             return;
       }
+      //or you can't separate it.
       else
          System.out.println("Can't do that!");
          return;
    }
-
+   /**
+   The use command lets you use an item from the player inventory with an item in the room
+   **/
    private void use(Command command)
    {
       if(!command.hasSecondWord()) {
@@ -320,15 +385,16 @@ public class Game
 
       String item = command.getSecondWord();
 
-
+      //if the player has the item
       if (player1.getInventory().containsKey(item))
       {
+         //if the room you are in is the cell
           if(currentRoom.getName().equals("cell"))
           {
 
-             if (player1.getInventory().containsKey("poster"))
+             if (player1.getInventory().containsKey("poster")) //if you take the poster off the wall to reveal the crumbling wall behind it.
              {
-                if(item.equals("hammer"))
+                if(item.equals("hammer")) //if you don't combine the hammer with the towel, you lose stealth
                 {
                    System.out.println("Use " + command.getSecondWord() + " with what?");
                    System.out.println(currentRoom.getItemString());
@@ -343,7 +409,7 @@ public class Game
 
 
                 }
-                else if(item.equals("blanket-hammer"))
+                else if(item.equals("blanket-hammer")) //if you do, you destroy theh wall to reveal the pipe room
                 {
                    System.out.println("Use " + command.getSecondWord() + " with what?");
                    System.out.println(currentRoom.getItemString());
@@ -367,9 +433,9 @@ public class Game
                System.out.println("can't do that!");
           }
 
-          else if(currentRoom.getName().equals("pipe-room"))
+          else if(currentRoom.getName().equals("pipe-room")) //if you're in the pipe room
           {
-            if(item.equals("blanket"))
+            if(item.equals("blanket")) //and use the blanket
             {
                System.out.println("Use " + command.getSecondWord() + " with what?");
                System.out.println(currentRoom.getItemString());
@@ -377,18 +443,18 @@ public class Game
                Scanner in = new Scanner(System.in);
                String input = in.nextLine();
 
-               if(input.equals("hotwater-pipe"))
+               if(input.equals("hotwater-pipe")) //on the hotwater-pipe
                {
                   System.out.println("You wrapped the blanket around the hotwater-pipe and slid down to the basement!");
-                  currentRoom = allRooms.get("basement");
+                  currentRoom = allRooms.get("basement"); //you change your location to the basement
                }
             }
 
           }
 
-          else if(currentRoom.getName().equals("courtyard"))
+          else if(currentRoom.getName().equals("courtyard")) //if you're in the courtyard
           {
-             if(item.equals("blanket"))
+             if(item.equals("blanket")) //and use the blanket
              {
                System.out.println("Use " + command.getSecondWord() + " with what?");
                System.out.println(currentRoom.getItemString());
@@ -396,10 +462,10 @@ public class Game
                Scanner in = new Scanner(System.in);
                String input = in.nextLine();
 
-                 if(input.equals("bars"))
+                 if(input.equals("bars")) //on the bars
                  {
                     System.out.println("You wrap the blanket around the bars and start twisting. The bars bend just enough to sneak through. Good think they don't give you a lot of food in prison!");
-                    currentRoom = allRooms.get("outside");
+                    currentRoom = allRooms.get("outside"); //you break free and win the game
                  }
                  else
                     System.out.println("Can't do that!");
@@ -416,6 +482,9 @@ public class Game
 
    }
 
+   /**
+   * the combine method checks if the two valid items are in the player inventory, removes them from inventory, and creates and adds the new item to inventory.
+   **/
    private void combine(Command command)
    {
       if(!command.hasSecondWord()) {

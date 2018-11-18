@@ -61,7 +61,7 @@ reduces stealth meter by 1 if you make noise
    public String inspectItem(String item)
    {
       if(inventory.containsKey(item))
-         return " " + inventory.get(item).getDescription() + "/n";
+         return " " + inventory.get(item).getDescription() + "\n";
       else
          return "no such item";
    }
@@ -75,11 +75,11 @@ reduces stealth meter by 1 if you make noise
    public String getInventoryString()
    {
 
-       String returnString = "Inventory:";
+       String returnString = "Inventory: ";
        Set<String> keys = inventory.keySet();
        for(String item : keys)
        {
-          returnString += " " + item;
+          returnString += item + ", ";
        }
           return  returnString;
 
